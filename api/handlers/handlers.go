@@ -32,13 +32,13 @@ func HandleRequests(h *BaseHandler, router *gin.Engine) {
     authorized.Use(middleware.AuthMiddleware())
     {
         authorized.POST("/feeling", h.insertFeeling)
-        // authorized.GET("/recommendation", h.getRecommendation)
+        authorized.GET("/recommendation", h.getRecommendation)
     }
 }
 
 
 func (h *BaseHandler) createUser(c *gin.Context) {
-    var newUser models.User
+    var newUser models.UserRegister
     if err := c.ShouldBindJSON(&newUser); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
@@ -69,17 +69,18 @@ func (h *BaseHandler) login(c *gin.Context) {
     c.JSON(http.StatusOK, gin.H{"message": "Success"})
 }
 
-
-
-
-// func (h *BaseHandler) getRecommendation(c *gin.Context){
-//     userId, _ := c.Get("user_id")
-//     userIdInt := utilities.ExtractId(userId)
+func (h *BaseHandler) getRecommendation(c *gin.Context){
+    userId, _ := c.Get("user_id")
+    userIdInt := utilities.ExtractId(userId)
     
+    recom, err := h.Repo.GetRecommendation(userIdInt, c)
+    if err  != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
 
-
-//     c.JSON(http.StatusOK, gin.H{"message": "Success"})
-// }
+    c.JSON(http.StatusOK, recom)
+}
 
 func (h  *BaseHandler) insertFeeling(c *gin.Context) {
     userId, _ := c.Get("user_id")

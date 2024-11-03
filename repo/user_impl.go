@@ -8,11 +8,20 @@ import (
 	"github.com/vincentandreas/dealls/utilities"
 )
 
-func (repo *Implementation) SaveUser(user models.User, ctx context.Context) error {
-	user.Password = utilities.HashParams(user.Password)
-	user.Quota = 10 //todo use redis
-	user.QuotaLatestUpdate = time.Now()
-	err := repo.db.WithContext(ctx).Create(&user).Error
+func (repo *Implementation) SaveUser(user models.UserRegister, ctx context.Context) error {
+	var savedUser models.User
+	savedUser.Password = utilities.HashParams(user.Password)
+	savedUser.Quota = 10 //todo use redis
+	savedUser.QuotaLatestUpdate = time.Now()
+	savedUser.Email = user.Email
+	savedUser.Name = user.Name
+	savedUser.Gender = user.Gender
+
+	savedUser.UserPreference = &models.UserPreference{
+		InterestGender:  user.InterestGender,
+		Hobby:  user.Hobby,
+	}
+	err := repo.db.WithContext(ctx).Create(&savedUser).Error
 	return err
 }
 

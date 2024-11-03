@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/vincentandreas/dealls/models"
@@ -17,7 +18,22 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
         FeelMatch: feel.FeelMatch,
 	}
 
-	err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	if userId == feel.WatchedUserID {
+		return errors.New("user cant value themselves")
+	}
+
+	// check existing history
+	histWatchedIds, err := repo.SeenUserIds(userId, ctx)
+	utilities.CheckError(err)
+
+	for _, id := range histWatchedIds {
+		if feel.WatchedUserID == id {
+			return errors.New("you already decide for this user")
+		}
+	}
+
+
+	err = repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		today := time.Now() 
 		
 		var user models.User
@@ -30,12 +46,12 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 		curQuotaDate := user.QuotaLatestUpdate
 
 		if utilities.DateEqual(curQuotaDate, today) {
-			if curQuota == 0 {
+			if curQuota <= 0 {
 				return errors.New("noquota")
 			}
 			curQuota--
 		}else{
-			curQuota = 10
+			curQuota = 9
 			curQuotaDate = today
 		}
 		user.QuotaLatestUpdate = curQuotaDate
@@ -53,4 +69,14 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 		return nil
 	})
 	return err
+}
+
+func (repo *Implementation) SeenUserIds(userId uint64, ctx context.Context) ([]uint64, error) {
+
+	var watchedUserIDs []uint64
+
+    // Query for the watched user IDs
+    err := repo.db.Model(&models.History{}).Where("user_id = ?", userId).Pluck("watched_user_id", &watchedUserIDs).Error
+	fmt.Println(watchedUserIDs)
+	return watchedUserIDs, err
 }

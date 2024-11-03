@@ -3,6 +3,7 @@ package utilities
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"log"
 	"time"
 )
 
@@ -35,4 +36,10 @@ func ExtractId(data any) uint64 {
         userIdUint64 = 0
     }
 	return userIdUint64
+}
+
+func CheckError(err error){
+    if err != nil {
+        log.Fatal(err.Error())
+    }
 }
