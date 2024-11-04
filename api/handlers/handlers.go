@@ -37,6 +37,7 @@ func HandleRequests(h *BaseHandler, router *gin.Engine) {
         authorized.GET("/recommendation", h.getRecommendation)
         authorized.POST("/user/premium", h.applyPremium)
         authorized.GET("/user/premium/check", h.checkPremium)
+        authorized.GET("/user/interestedby", h.getInterestedBy)
 
     }
 }
@@ -137,3 +138,14 @@ func (h *BaseHandler) checkPremium(c *gin.Context) {
    
 }
 
+func (h *BaseHandler) getInterestedBy(c *gin.Context) {
+    userId, _ := c.Get("user_id")
+    userIdInt := utilities.ExtractId(userId)
+
+    recoms, err := h.Repo.GetInterestWithUser(userIdInt, c)
+    if err!= nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, recoms)
+}

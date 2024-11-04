@@ -29,7 +29,8 @@ type UserPreference struct {
 type History struct {
 	gorm.Model
 	ID          uint64 `gorm:"primarykey" json:"-"`
-	UserID uint64 `gorm:"primarykey" json:"user_id"`
+	UserID uint64 `gorm:"not null" json:"user_id"`
+	User User `gorm:"foreignkey:UserID"`
 	WatchedUser User `gorm:"foreignkey:WatchedUserID"`
 	WatchedUserID uint64 `gorm:"not null" json:"watched_user_id"`
 	FeelMatch bool `gorm:"not null" json:"feel_match"`	

@@ -76,6 +76,21 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 	return err
 }
 
+func (repo *Implementation) GetInterestWithUser(userId uint64, ctx context.Context) ([]models.Recommendation, error) {
+	var hists []models.History
+	
+	err := repo.db.Preload("User").Preload("User.UserPreference").Where("watched_user_id = ?", userId).Where("feel_match = true").Find(&hists)
+	recoms := make([]models.Recommendation,0)
+	for _, data := range hists {
+		recoms = append(recoms, models.Recommendation{
+			UserId: data.UserID,
+			Hobby: data.User.UserPreference.Hobby,
+			Name: data.User.Name,
+		})
+	}
+	return recoms, err.Error
+}
+
 func (repo *Implementation) SeenUserIds(userId uint64, ctx context.Context) ([]uint64, error) {
 
 	var watchedUserIDs []uint64
