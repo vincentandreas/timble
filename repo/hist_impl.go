@@ -44,23 +44,28 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 
 		curQuota := user.Quota
 		curQuotaDate := user.QuotaLatestUpdate
-
-		if utilities.DateEqual(curQuotaDate, today) {
-			if curQuota <= 0 {
-				return errors.New("noquota")
-			}
-			curQuota--
-		}else{
-			curQuota = 9
-			curQuotaDate = today
+		if utilities.DateBefore(user.PremiumExpired,today) {
+			user.PremiumAccount = false
 		}
-		user.QuotaLatestUpdate = curQuotaDate
-		user.Quota = curQuota
 
-		err = tx.Save(user).Error
-		if err!= nil {
-            return err
-        }
+		if !user.PremiumAccount{
+			if utilities.DateEqual(curQuotaDate, today) {
+				if curQuota <= 0 {
+					return errors.New("noquota")
+				}
+				curQuota--
+			}else{
+				curQuota = 9
+				curQuotaDate = today
+			}
+			user.QuotaLatestUpdate = curQuotaDate
+			user.Quota = curQuota
+
+			err = tx.Save(user).Error
+			if err!= nil {
+				return err
+			}
+		}
 
 		err = tx.Create(&hist).Error
 		if err!= nil {
@@ -74,9 +79,9 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 func (repo *Implementation) SeenUserIds(userId uint64, ctx context.Context) ([]uint64, error) {
 
 	var watchedUserIDs []uint64
+	currentDate := time.Now().Format("2006-01-02")
 
-    // Query for the watched user IDs
-    err := repo.db.Model(&models.History{}).Where("user_id = ?", userId).Pluck("watched_user_id", &watchedUserIDs).Error
+    err := repo.db.Model(&models.History{}).Where("user_id = ?", userId).Where("DATE(created_at) = ?", currentDate).Pluck("watched_user_id", &watchedUserIDs).Error
 	fmt.Println(watchedUserIDs)
 	return watchedUserIDs, err
 }

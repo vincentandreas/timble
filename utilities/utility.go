@@ -20,6 +20,14 @@ func DateEqual(date1, date2 time.Time) bool {
     return y1 == y2 && m1 == m2 && d1 == d2
 }
 
+func DateBefore(date1, date2 time.Time) bool {
+	date1 = time.Date(date1.Year(), date1.Month(), date1.Day(), 0, 0, 0, 0, date1.Location())
+	date2 = time.Date(date2.Year(), date2.Month(), date2.Day(), 0, 0, 0, 0, date2.Location())
+
+	return date1.Before(date2)
+}
+
+
 func ExtractId(data any) uint64 {
     var userIdUint64 uint64
 

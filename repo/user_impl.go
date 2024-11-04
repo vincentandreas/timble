@@ -25,10 +25,9 @@ func (repo *Implementation) SaveUser(user models.UserRegister, ctx context.Conte
 	return err
 }
 
-func (repo *Implementation) FindUserById(id uint, ctx context.Context) (*models.User, error) {
+func (repo *Implementation) FindUserById(id uint64, ctx context.Context) (*models.User, error) {
 	var user *models.User
-	selSql := "full_name, user_name, phone_number, role"
-	err := repo.db.WithContext(ctx).Select(selSql).Where("id = ?", id).First(&user).Error
+	err := repo.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
 	return user, err
 }
 
@@ -44,4 +43,15 @@ func (repo *Implementation) Login(req models.UserLogin, ctx context.Context) (*m
 	return user, nil
 }
 
-
+func (repo *Implementation) UpdatePremium(id uint64, ctx context.Context) error{
+	var user models.User
+    err := repo.db.WithContext(ctx).First(&user, id).Error
+    if err!= nil {
+        return err
+    }
+	now := time.Now()
+    user.PremiumAccount = true
+	user.PremiumExpired =  now.AddDate(0, 1, 0) //todo change to more custom
+    err = repo.db.Save(&user).Error
+	return err
+}

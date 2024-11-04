@@ -3,6 +3,8 @@ package handlers
 import (
 	"net/http"
 
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/vincentandreas/dealls/api/middleware"
@@ -33,6 +35,9 @@ func HandleRequests(h *BaseHandler, router *gin.Engine) {
     {
         authorized.POST("/feeling", h.insertFeeling)
         authorized.GET("/recommendation", h.getRecommendation)
+        authorized.POST("/user/premium", h.applyPremium)
+        authorized.GET("/user/premium/check", h.checkPremium)
+
     }
 }
 
@@ -54,7 +59,6 @@ func (h *BaseHandler) login(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
-
 
     user, err := h.Repo.Login(tryLoginUser, c)
     if err != nil {
@@ -99,3 +103,37 @@ func (h  *BaseHandler) insertFeeling(c *gin.Context) {
     }
     c.JSON(http.StatusOK, gin.H{"message": "Success"})
 }
+
+func (h *BaseHandler) applyPremium(c *gin.Context) {
+    userId, _ := c.Get("user_id")
+    userIdInt := utilities.ExtractId(userId)
+
+    err := h.Repo.UpdatePremium(userIdInt,c)
+    if err!= nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"message": "Success"})
+   
+}
+
+func (h *BaseHandler) checkPremium(c *gin.Context) {
+    userId, _ := c.Get("user_id")
+    userIdInt := utilities.ExtractId(userId)
+
+    user, err := h.Repo.FindUserById(userIdInt,c)
+
+    today := time.Now()
+    checkRes := true
+    if !user.PremiumAccount || utilities.DateBefore(user.PremiumExpired, today){
+        checkRes = false
+    }
+
+    if err!= nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"premium_account": checkRes})
+   
+}
+

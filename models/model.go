@@ -14,6 +14,8 @@ type User struct {
 	Gender string `gorm:"size:255;not null" json:"gender"`
 	Quota uint `gorm:"not null" json:"quota"`
 	QuotaLatestUpdate time.Time `gorm:"not null"`
+	PremiumAccount bool `gorm:"not null" json:"premium_account"`
+	PremiumExpired time.Time `gorm:"not null" json:"premium_expired"`
 	UserPreference *UserPreference `validate:"omitempty"`
 }
 
@@ -30,7 +32,7 @@ type History struct {
 	UserID uint64 `gorm:"primarykey" json:"user_id"`
 	WatchedUser User `gorm:"foreignkey:WatchedUserID"`
 	WatchedUserID uint64 `gorm:"not null" json:"watched_user_id"`
-	FeelMatch bool `gorm:"primarykey" json:"feel_match"`	
+	FeelMatch bool `gorm:"not null" json:"feel_match"`	
 }
 
 type UserLogin struct {
