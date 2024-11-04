@@ -27,11 +27,6 @@ func TestMain(m *testing.M) {
     m.Run()
 }
 
-func Test_register_should_failed_due_to_duplicate_email(t *testing.T) {
-	PopulateData()
-}
-
-
 func Test_register_should_success(t *testing.T) {
 	router,db := handlers.SetupServer()
 	defer CleanDb(db)

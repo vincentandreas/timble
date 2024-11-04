@@ -28,7 +28,7 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 
 	for _, id := range histWatchedIds {
 		if feel.WatchedUserID == id {
-			return errors.New("you already decide for this user")
+			return errors.New("you already give value for this user")
 		}
 	}
 
@@ -51,7 +51,7 @@ func (repo *Implementation) SaveHistory(userId uint64, feel models.Feeling, ctx 
 		if !user.PremiumAccount{
 			if utilities.DateEqual(curQuotaDate, today) {
 				if curQuota <= 0 {
-					return errors.New("noquota")
+					return errors.New("no more quota left")
 				}
 				curQuota--
 			}else{
